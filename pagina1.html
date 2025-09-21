@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorpresa!!!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" href="/bmyfavicon.ico">
+    <style>
+        body, html {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #f7c6d9; /* rosa pastel levemente oscuro */
+        }
+        .duplicable {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            border-radius: 0.25rem;
+            user-select: none;
+            object-fit: cover;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="relative">
+
+    <div id="instruction" class="absolute top-2 left-1/2 -translate-x-1/2 bg-white bg-opacity-20 text-white p-3 rounded-lg shadow-lg text-center">
+    <h1 class="text-xl font-bold">¡Haz clic en la imagen!</h1>
+    <p>Las imágenes dibujarán la frase "Te amo Sherlyn".</p>
+    </div>
+
+    <img src="flor-amarilla-removebg-preview.png" 
+         onerror="this.onerror=null;this.src='https://placehold.co/150x150/f43f5e/ffffff?text=Error!';"
+         alt="Imagen para duplicar" 
+         class="duplicable" 
+         id="initialImage"
+         style="top: 30%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; border-radius: 0.5rem;">
+    
+    <div id="heartContainer" style="position: absolute; left: 50%; top: 80%; transform: translate(-50%, 0); display: none;">
+        <svg id="mainHeart" width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="cursor:pointer;">
+            <path d="M40 70s-25-15-25-35a15 15 0 0130 0 15 15 0 0130 0c0 20-25 35-25 35z" fill="#f43f5e" stroke="#e11d48" stroke-width="3"/>
+        </svg>
+    </div>
+
+    <script>
+        // Función para duplicar corazones en posiciones aleatorias
+        function duplicateHeart() {
+            const screenW = window.innerWidth;
+            const screenH = window.innerHeight;
+            for (let i = 0; i < 20; i++) {
+                const heart = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                heart.setAttribute('width', '40');
+                heart.setAttribute('height', '40');
+                heart.setAttribute('viewBox', '0 0 80 80');
+                heart.style.position = 'absolute';
+                heart.style.left = Math.random() * (screenW - 40) + 'px';
+                heart.style.top = Math.random() * (screenH - 40) + 'px';
+                heart.style.zIndex = 100;
+                heart.innerHTML = '<path d="M40 70s-25-15-25-35a15 15 0 0130 0 15 15 0 0130 0c0 20-25 35-25 35z" fill="#f43f5e" stroke="#e11d48" stroke-width="3"/>';
+                heart.addEventListener('click', duplicateHeart);
+                document.body.appendChild(heart);
+            }
+        }
+
+        // Asigna el evento al corazón principal
+        document.addEventListener('DOMContentLoaded', function() {
+            const mainHeart = document.getElementById('mainHeart');
+            if (mainHeart) {
+                mainHeart.addEventListener('click', duplicateHeart);
+            }
+        });
+        const initialImage = document.getElementById('initialImage');
+        const container = document.body;
+        
+        // --- DEFINICIÓN DE LA RUTA PARA FORMAR "Te amo Sherlyn" ---
+    let path = [];
+    // Calcula el tamaño de letra y espaciado según el ancho de pantalla
+    const screenW = window.innerWidth;
+    const screenH = window.innerHeight;
+    // Para móviles, letras más pequeñas y menos espaciado
+    let letterWidth = Math.max(40, Math.min(80, screenW / 18));
+    let letterHeight = Math.max(60, Math.min(120, screenH / 8));
+    let spacing = Math.max(10, Math.min(30, screenW / 60));
+    let step = Math.max(12, Math.min(25, letterWidth / 4));
+    const centerX = screenW / 2;
+    const centerY = screenH * 0.32;
+
+        function createLine(x1, y1, x2, y2) {
+            const points = [];
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const segments = Math.round(distance / step);
+            for (let i = 0; i <= segments; i++) {
+                const x = x1 + (dx * i) / segments;
+                const y = y1 + (dy * i) / segments;
+                points.push({ x, y });
+            }
+            return points;
+        }
+
+    // Posición inicial para la primera letra (T)
+    let startX = centerX - (letterWidth * 12 + spacing * 11) / 2;
+
+        // --- DIBUJAR LETRA "T" ---
+        path.push(...createLine(startX, centerY - letterHeight / 2, startX + letterWidth, centerY - letterHeight / 2)); // Arriba
+        path.push(...createLine(startX + letterWidth / 2, centerY - letterHeight / 2, startX + letterWidth / 2, centerY + letterHeight / 2)); // Palo vertical
+
+        startX += letterWidth + spacing;
+        // --- DIBUJAR LETRA "E" ---
+        path.push(...createLine(startX, centerY - letterHeight / 2, startX, centerY + letterHeight / 2)); // Palo vertical
+        path.push(...createLine(startX, centerY - letterHeight / 2, startX + letterWidth, centerY - letterHeight / 2)); // Arriba
+        path.push(...createLine(startX, centerY, startX + letterWidth * 0.8, centerY)); // Medio
+        path.push(...createLine(startX, centerY + letterHeight / 2, startX + letterWidth, centerY + letterHeight / 2)); // Abajo
+
+        startX += letterWidth + spacing;
+        // --- DIBUJAR ESPACIO ---
+        startX += letterWidth / 2;
+
+        // --- DIBUJAR LETRA "A" ---
+        path.push(...createLine(startX, centerY + letterHeight / 2, startX + letterWidth / 2, centerY - letterHeight / 2)); // Diagonal izquierda
+        path.push(...createLine(startX + letterWidth / 2, centerY - letterHeight / 2, startX + letterWidth, centerY + letterHeight / 2)); // Diagonal derecha
+        path.push(...createLine(startX + letterWidth * 0.2, centerY, startX + letterWidth * 0.8, centerY)); // Palo del medio
+
+        startX += letterWidth + spacing;
+        // --- DIBUJAR LETRA "M" ---
+        path.push(...createLine(startX, centerY + letterHeight / 2, startX, centerY - letterHeight / 2)); // Palo izquierdo
+        path.push(...createLine(startX, centerY - letterHeight / 2, startX + letterWidth / 2, centerY)); // Diagonal izquierda
+        path.push(...createLine(startX + letterWidth / 2, centerY, startX + letterWidth, centerY - letterHeight / 2)); // Diagonal derecha
+        path.push(...createLine(startX + letterWidth, centerY - letterHeight / 2, startX + letterWidth, centerY + letterHeight / 2)); // Palo derecho
+
+        startX += letterWidth + spacing;
+        // --- DIBUJAR LETRA "O" ---
+        path.push(...createLine(startX, centerY - letterHeight / 2, startX + letterWidth, centerY - letterHeight / 2)); // Arriba
+        path.push(...createLine(startX + letterWidth, centerY - letterHeight / 2, startX + letterWidth, centerY + letterHeight / 2)); // Derecha
+        path.push(...createLine(startX + letterWidth, centerY + letterHeight / 2, startX, centerY + letterHeight / 2)); // Abajo
+        path.push(...createLine(startX, centerY + letterHeight / 2, startX, centerY - letterHeight / 2)); // Izquierda
+
+        startX += letterWidth + spacing;
+        // --- DIBUJAR ESPACIO ---
+        startX += letterWidth / 2;
+
+        // --- DIBUJAR LETRA "S" ---
+        path.push(...createLine(startX + letterWidth, centerY - letterHeight / 2, startX, centerY - letterHeight / 2)); // Arriba
+        path.push(...createLine(startX, centerY - letterHeight / 2, startX, centerY)); // Izquierda arriba
+        path.push(...createLine(startX, centerY, startX + letterWidth, centerY)); // Medio
+        path.push(...createLine(startX + letterWidth, centerY, startX + letterWidth, centerY + letterHeight / 2)); // Derecha abajo
+        path.push(...createLine(startX + letterWidth, centerY + letterHeight / 2, startX, centerY + letterHeight / 2)); // Abajo
+
+        startX += letterWidth + spacing;
+        // --- DIBUJAR LETRA "H" ---
+        path.push(...createLine(startX, centerY - letterHeight / 2, startX, centerY + letterHeight / 2)); // Palo izquierdo
+        path.push(...createLine(startX + letterWidth, centerY - letterHeight / 2, startX + letterWidth, centerY + letterHeight / 2)); // Palo derecho
+        path.push(...createLine(startX, centerY, startX + letterWidth, centerY)); // Palo del medio
+
+        startX += letterWidth + spacing;
+        // --- DIBUJAR LETRA "E" ---
+        path.push(...createLine(startX, centerY - letterHeight / 2, startX, centerY + letterHeight / 2)); // Palo vertical
+        path.push(...createLine(startX, centerY - letterHeight / 2, startX + letterWidth, centerY - letterHeight / 2)); // Arriba
+        path.push(...createLine(startX, centerY, startX + letterWidth * 0.8, centerY)); // Medio
+        path.push(...createLine(startX, centerY + letterHeight / 2, startX + letterWidth, centerY + letterHeight / 2)); // Abajo
+
+        startX += letterWidth + spacing;
+        // --- DIBUJAR LETRA "R" ---
+        path.push(...createLine(startX, centerY + letterHeight / 2, startX, centerY - letterHeight / 2)); // Palo izquierdo
+        path.push(...createLine(startX, centerY - letterHeight / 2, startX + letterWidth, centerY - letterHeight / 2)); // Arriba
+        path.push(...createLine(startX + letterWidth, centerY - letterHeight / 2, startX + letterWidth, centerY)); // Derecha arriba
+        path.push(...createLine(startX + letterWidth, centerY, startX, centerY)); // Medio
+        path.push(...createLine(startX, centerY, startX + letterWidth, centerY + letterHeight / 2)); // Diagonal abajo
+
+        startX += letterWidth + spacing;
+        // --- DIBUJAR LETRA "L" ---
+        path.push(...createLine(startX, centerY - letterHeight / 2, startX, centerY + letterHeight / 2)); // Palo vertical
+        path.push(...createLine(startX, centerY + letterHeight / 2, startX + letterWidth, centerY + letterHeight / 2)); // Palo horizontal
+
+        startX += letterWidth + spacing;
+        // --- DIBUJAR LETRA "Y" ---
+        path.push(...createLine(startX, centerY - letterHeight / 2, startX + letterWidth / 2, centerY)); // Diagonal izquierda
+        path.push(...createLine(startX + letterWidth, centerY - letterHeight / 2, startX + letterWidth / 2, centerY)); // Diagonal derecha
+        path.push(...createLine(startX + letterWidth / 2, centerY, startX + letterWidth / 2, centerY + letterHeight / 2)); // Palo vertical
+
+        startX += letterWidth + spacing;
+        // --- DIBUJAR LETRA "N" ---
+        path.push(...createLine(startX, centerY + letterHeight / 2, startX, centerY - letterHeight / 2)); // Palo izquierdo
+        path.push(...createLine(startX, centerY - letterHeight / 2, startX + letterWidth, centerY + letterHeight / 2)); // Diagonal
+        path.push(...createLine(startX + letterWidth, centerY + letterHeight / 2, startX + letterWidth, centerY - letterHeight / 2)); // Palo derecho
+
+        let pathIndex = 0;
+
+        const duplicateImage = (event) => {
+            // Oculta la imagen inicial al primer clic
+            if (event.target.id === 'initialImage') {
+                event.target.style.visibility = 'hidden';
+            }
+            if (pathIndex >= path.length) {
+                // Mostrar mensaje y corazón cuando se completa la frase
+                const instruction = document.getElementById('instruction');
+                instruction.innerHTML = "<h1 class='text-xl font-bold'>¡Completado!</h1><p>Puedes seguir haciendo clic para repetir la frase.</p>";
+                document.getElementById('heartContainer').style.display = 'block';
+            }
+
+            const instruction = document.getElementById('instruction');
+            if (instruction.style.display !== 'none') {
+                instruction.style.display = 'none';
+            }
+            // Oculta el corazón si se reinicia el dibujo
+            if (pathIndex === 0) {
+                document.getElementById('heartContainer').style.display = 'none';
+            }
+            
+            const position = path[pathIndex % path.length];
+            if (!position) return;
+
+            const newImage = document.createElement('img');
+            newImage.src = event.target.src;
+            newImage.alt = event.target.alt;
+            newImage.className = 'duplicable';
+            
+            newImage.style.left = `${position.x - 15}px`; // Centramos la imagen en el punto
+            newImage.style.top = `${position.y - 15}px`;
+            
+            newImage.addEventListener('click', duplicateImage);
+            container.appendChild(newImage);
+            
+            pathIndex++;
+        };
+
+        initialImage.addEventListener('click', duplicateImage);
+    </script>
+</body>
+</html>
+
